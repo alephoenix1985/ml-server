@@ -1,5 +1,5 @@
 'use strict';
-import {env} from "../../config";
+let env = require('../../config');
 
 const apiMLSearch = env.endPoints.search;
 const apiMLItem = env.endPoints.item;
