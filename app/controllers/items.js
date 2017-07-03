@@ -1,10 +1,11 @@
 'use strict';
+import {env} from "../../config";
 
-const apiMLSearch = 'https://api.mercadolibre.com/sites/MLA/search';
-const apiMLItem = 'https://api.mercadolibre.com/items/';
-const apiMLItemDescription = 'https://api.mercadolibre.com/items/:id/description';
+const apiMLSearch = env.endPoints.search;
+const apiMLItem = env.endPoints.item;
+const apiMLItemDescription = env.endPoints.itemDescription;
 
-var request = require('request');
+const request = require('request');
 
 module.exports = {
     search: search,
@@ -12,20 +13,17 @@ module.exports = {
 };
 
 function search(req, res) {
-    var r = req.query;
+    const r = req.query;
     request.get({url: apiMLSearch, qs: {q: r.q}}, function (error, response, body) {
-            var final;
-            var result = JSON.parse(body);
+            let final;
+            const result = JSON.parse(body);
             if (result) {
-                var topCat = {results: 0};
+                let topCat = {results: 0};
                 final = {
-                    author: {
-                        name: "Alejandro",
-                        lastname: "Hernandez"
-                    }
+                    author: env.user
                 };
                 if (result['available_filters']) {
-                    var categoryFilter = result['available_filters'].find(function (af) {
+                    const categoryFilter = result['available_filters'].find(function (af) {
                         return af.id === "category"
                     });
                     final.categories = categoryFilter && categoryFilter.values && categoryFilter.values.length ? categoryFilter.values.map(function (c) {
@@ -39,7 +37,7 @@ function search(req, res) {
                 if (result.results) {
                     final.items = result.results.slice(0, 4).map(function (i) {
                         function getDecimalsFromPrice(p) {
-                            var s = (p + "").split('.');
+                            const s = (p + "").split('.');
                             return s && s.length >= 2 ? s[1].length : 0
                         }
 
@@ -65,17 +63,14 @@ function search(req, res) {
 }
 
 function get(req, res) {
-    var r = req.params;
+    const r = req.params;
     request.get(apiMLItem + r.id, function (error, response, body) {
-        var final;
-        var result = JSON.parse(body);
+        let final;
+        const result = JSON.parse(body);
         if (result) {
 
             final = {
-                author: {
-                    name: "Alejandro",
-                    lastname: "Hernandez"
-                }
+                author: env.user
             };
             final.category = result.category_id;
             final.item = {
@@ -93,7 +88,7 @@ function get(req, res) {
                 description: result.descriptions.join(',')
             };
             request.get(apiMLItemDescription.replace(':id', r.id), function (error, response, body) {
-                var result = JSON.parse(body);
+                const result = JSON.parse(body);
                 if (result) {
                     final.item.description = result.text;
                     return res.send(final);
@@ -105,6 +100,6 @@ function get(req, res) {
 }
 
 function getDecimalsFromPrice(p) {
-    var s = (p + "").split('.');
+    const s = (p + "").split('.');
     return s && s.length >= 2 ? s[1].length : 0
 }
